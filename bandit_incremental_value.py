@@ -1,35 +1,33 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 # arms probability
 # 10-arms bandit
 
 k = 10
 RUNS = 100
-EPISODES = 1000
+EPISODES = 10000
 e = 0.1
 
 # perform action on the environment
 
 def pull_arm(n):
     reward = 0.0
-    win_prob = np.random.rand()
+    win_prob = np.random.uniform()
     if win_prob < arms_prob[n]: reward = 1.0
     return reward
 
 '''
- action-value estimate:
- sample-average method
- Qt(a) = sum of reward for action a prior to t / sum of reward for all actions prior to t
+ incremental evaluation of action-value:
+ t = times action a has been selected
+ appropriate method for stationary problems: reward probability is fixed over time
+ Qt+1(a) = 1/t * sum(R)
+ ...
+ Qt+1(a) = Qt(a) + 1/t*(Rt(a) - Qt(a))
 '''
 
 def estimate(a):
-    indexes = np.argwhere(A_array==a)
-    a_r = R_array[indexes]
-    sum_a_r = float(np.sum(a_r))
-    sum_all_r = float(np.sum(R_array))
-    if sum_all_r == 0: return 0
-    return sum_a_r/sum_all_r
+    Q_ = (R[-1] - Q[a]) / N[a]
+    return Q_
 
 run = 0
 accuracy = 0.0
@@ -42,6 +40,7 @@ while run < RUNS:
     R = []
     pulled_arms = []
     Q = np.zeros(k)
+    N = np.zeros(k)
     while episode < EPISODES:
         episode += 1
         # exploration action with epsilon probability
@@ -51,14 +50,13 @@ while run < RUNS:
             # greedy action: maximize immediate reward
             arm = np.argmax(Q)
         r = pull_arm(arm)
+        # increment number of times action a occurs
+        N[arm] += 1
         R.append(r)
         pulled_arms.append(arm)
         if episode % 10 == 0:
             # update action value function
-            R_array = np.array(R)
-            A_array = np.array(pulled_arms)
-            for i in range(k):
-                Q[i] = estimate(i)
+            Q[arm] += estimate(arm)
     score.append(np.sum(R)/EPISODES)
     if np.argmax(arms_prob) == np.argmax(Q): accuracy += 1.0
 
