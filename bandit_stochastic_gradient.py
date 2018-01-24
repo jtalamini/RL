@@ -44,13 +44,12 @@ while run < RUNS:
         r = pull_arm(arm)
         R.append(r)
         pulled_arms.append(arm)
-        if episode % 10 == 0:
-            '''
-            update preference function H
-            stochastic gradient ascent:
-            each action preference H(a) is incremented proportionally to its effect on performances dE(R)/dH
-            '''
-            H += alpha * (R[-1] - np.mean(R)) * (y - policy)
+        '''
+        update preference function H
+        stochastic gradient ascent:
+        each action preference H(a) is incremented proportionally to its effect on performances dE(R)/dH
+        '''
+        H += alpha * (R[-1] - np.mean(R)) * (y - policy)
     score.append(np.sum(R)/EPISODES)
     if np.argmax(arms_prob) == np.argmax(H): accuracy += 1.0
 

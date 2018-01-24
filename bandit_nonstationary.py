@@ -53,9 +53,8 @@ while run < RUNS:
         # increment number of times action a occurs
         R.append(r)
         pulled_arms.append(arm)
-        if episode % 10 == 0:
-            # update action value function
-            Q[arm] += estimate(arm)
+        # update action value function
+        Q[arm] += estimate(arm)
     score.append(np.sum(R)/EPISODES)
     if np.argmax(arms_prob) == np.argmax(Q): accuracy += 1.0
 
