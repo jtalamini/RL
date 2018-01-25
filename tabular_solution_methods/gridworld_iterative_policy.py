@@ -6,16 +6,15 @@ in each state movements are allowed in each direction
 '''
 D = 4
 A = 4
-GAMMA = 0.9
-V = np.zeros(shape=[D,D])
+DELTA = 0
+THETA = 1e-20
 
 '''
 equiprobable random policy: all actions are equally likely
-the goal is to obtain the value function for each state
+the goal is to compute the value function for each state using this policy
 '''
 
-def random_policy():
-    return np.random.choice(A)
+V = np.zeros(shape=[D,D])
 
 def move(x, y, direction):
     if direction==0:
@@ -26,18 +25,32 @@ def move(x, y, direction):
         y = min(D-1, y+1)
     else:
         x = max(0, x-1)
-    s1 = y*D + x
-    if s1 == 0 or s1 == 15: d == True
-    return x, y, -1.0, d
+    return x, y
 
-episodes = 1000
-for ep in range(episodes):
-    x = np.random.choice(D)
-    y = np.random.choice(D)
-    d = False
-    while d == False:
-        a = random_policy()
-        x1, y1, r, d = move(x,y,a)
-        V[x][y] = r + GAMMA*V[x][y]
+def get_neighbour_states(x_,y_):
+    values = []
+    rewards = []
+    for i in range(4):
+        x, y = move(x_,y_,i)
+        r = -1.0
+        s1 = y*D + x
+        if s1 == 0 or s1 == 15:
+            r = 0.0
+        values.append(V[x][y])
+        rewards.append(r)
+    return np.array(values), np.array(rewards)
+
+while True:
+    DELTA = 0
+    for s in range(D*D):
+        x = s/D
+        y = s % D
+        v = V[x][y]
+        values, rewards = get_neighbour_states(x,y)
+        d = False
+        if s == 0 or s == 15: d = True
+        if d == False:
+            V[x][y] = np.mean(rewards + values)
+            DELTA = max(DELTA,abs(v - V[x][y]))
     print V
-
+    if DELTA < THETA: break
