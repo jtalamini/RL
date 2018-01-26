@@ -6,12 +6,12 @@ in each state movements are allowed in each direction
 '''
 D = 4
 A = 4
-DELTA = 0
 THETA = 1e-20
 
 '''
 equiprobable random policy: all actions are equally likely
 the goal is to compute the value function for each state using this policy
+this helps us finding better policies
 '''
 
 V = np.zeros(shape=[D,D])
@@ -27,7 +27,7 @@ def move(x, y, direction):
         x = max(0, x-1)
     return x, y
 
-def get_neighbour_states(x_,y_):
+def evaluate_states(x_,y_):
     values = []
     rewards = []
     for i in range(4):
@@ -46,8 +46,9 @@ while True:
         x = s/D
         y = s % D
         v = V[x][y]
-        values, rewards = get_neighbour_states(x,y)
+        values, rewards = evaluate_states(x,y)
         d = False
+        # no state can be reached from terminal states
         if s == 0 or s == 15: d = True
         if d == False:
             V[x][y] = np.mean(rewards + values)
