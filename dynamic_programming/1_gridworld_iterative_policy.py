@@ -33,9 +33,6 @@ def evaluate_states(x_,y_):
     for i in range(4):
         x, y = move(x_,y_,i)
         r = -1.0
-        s1 = y*D + x
-        if s1 == 0 or s1 == 15:
-            r = 0.0
         values.append(V[x][y])
         rewards.append(r)
     return np.array(values), np.array(rewards)
