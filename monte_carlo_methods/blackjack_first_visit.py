@@ -33,13 +33,13 @@ the ace is said to be USABLE and in same scenarios it is always counted as 11
 '''
 monte carlo first visit: 
 only value function is updated, policy is fixed
-value of a state s is average of the returns obtained after the first visit of s in each episode
+value of a state s is the average of the returns obtained after the first visit of s in each episode
 '''
 
 # hit
-def hit():
+def hit(number):
     # 13 type of cards from infinite deck
-    card = np.random.choice(13)+1
+    card = np.random.choice(number)+1
     if card > 10: card = 10
     return card
 
@@ -49,13 +49,14 @@ def stick():
 
 def initialize_game():
     p_cards = []
-    p_cards.append(hit())
-    p_cards.append(hit())
+    p_cards.append(hit(13))
+    p_cards.append(hit(9))
     usable = 0
     if 1 in p_cards and np.sum(p_cards)+10 <= 21: usable = 1
     d_cards = []
-    d_cards.append(hit())
-    d_cards.append(hit())
+    d_cards.append(hit(13))
+    d_cards.append(hit(9))
+    if 1 in d_cards and np.sum(d_cards)+10 <= 21: d_cards.append(10)
     return p_cards, d_cards, usable
 
 # initialize V function, initialize return for each state
@@ -74,17 +75,11 @@ for episode in range(EPISODES):
     d = False
     player_bust = False
     dealer_bust = False
-    player_natural = False
-    dealer_natural = False
-    if np.sum(player_cards)+10*usable_ace == 21:
-        player_natural = True
-        if np.sum(dealer_cards) == 21:
-            dealer_natural = True
     # at each step of the game evaluate state
     states = []
     while d == False:
         if np.sum(player_cards)+10*usable_ace < 12:
-            player_cards.append(hit())
+            player_cards.append(hit(13))
         else:
             # fixed policy
             state = [np.sum(player_cards)+10*usable_ace-12,dealer_cards[0]-1,usable_ace]
@@ -92,40 +87,39 @@ for episode in range(EPISODES):
                 states.append(state)
                 f[state[0]][state[1]][state[2]] += 1
             if np.sum(player_cards)+10*usable_ace < 20:
-                player_cards.append(hit())
-                if np.sum(player_cards)+10*usable_ace > 21:
-                    d = True
-                    player_bust = True
+                player_cards.append(hit(13))
             else: d = stick()
+            if np.sum(player_cards) + 10 * usable_ace > 21:
+                d = True
+                player_bust = True
             if state[0] == 21: d = True
     # dealer's turn
     dealers_turn = True
     r = 0
-    if player_natural == True and dealer_natural == False:
-        dealers_turn = False
-        r = 1.0
-    if player_natural == True and dealer_natural == True:
-        dealers_turn = False
-        r = 0.0
-    if player_natural == False and dealer_natural == True:
-        r = -1.0
     if player_bust == True:
         dealers_turn = False
+        print "player bust!"
         r = -1.0
     if dealers_turn == True:
         dealers_d = False
         while dealers_d == False:
             # fixed policy
             if np.sum(dealer_cards) < 17:
-                dealer_cards.append(hit())
+                dealer_cards.append(hit(13))
                 if np.sum(dealer_cards) > 21:
                     dealers_d = True
                     dealer_bust = True
             else:
                 dealers_d = stick()
-        if np.sum(dealer_cards) > np.sum(player_cards): r = -1.0
-        elif np.sum(dealer_cards) == np.sum(player_cards): r = 0.0
-        else: r = 1.0
+        if np.sum(dealer_cards) > np.sum(player_cards):
+            print "dealer wins!"
+            r = -1.0
+        elif np.sum(dealer_cards) == np.sum(player_cards):
+            print "draw!"
+            r = 0.0
+        else:
+            print "player wins!"
+            r = 1.0
     # update return for each visited state
     for s in range(len(states)):
         visited_state = states[s]
@@ -133,4 +127,4 @@ for episode in range(EPISODES):
 
     # update value function summing R along episodes and dividing by frequency
     V = np.divide(R,f)
-    print V
+print V
