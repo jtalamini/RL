@@ -4,6 +4,8 @@ import gym
 '''
 Q-learning optimizes action-value function Q to the optimal Q* independently of the policy being followed
 off-policy method
+
+if epsilon goes to zero -> sarsa and q-learning converge to optimal policy
 '''
 
 env = gym.make("FrozenLake-v0")
