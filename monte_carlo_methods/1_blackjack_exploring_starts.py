@@ -43,7 +43,7 @@ policy = np.ones(shape=[D1,D2,D3])
 
 EPISODES = 10000
 accuracy = []
-batch_size = 1000
+batch_size = 100
 # game start
 for episode in range(EPISODES):
     player_cards, dealer_cards, usable_ace = initialize_game()
@@ -61,6 +61,7 @@ for episode in range(EPISODES):
             if episode > 1000:
                 a = policy[state[0]][state[1]][state[2]]
             else:
+                # exploring start unrealistic assunmption
                 if np.sum(player_cards)+10*usable_ace < 20:
                     a = 1
                 else: a = 0
