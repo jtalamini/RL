@@ -19,7 +19,6 @@ def e_greedy_policy(Q, s):
     else: a = np.argmax(Q[s])
     return a
 
-
 EPISODES = 8000
 ALPHA = 0.5
 GAMMA = 0.99
@@ -44,7 +43,6 @@ for e in range(EPISODES):
         Q[s,a] += ALPHA*(r + GAMMA*Q[s1,a1] - Q[s,a])
         s = s1
     accuracy.append(ep_r)
-
     steps.append(step)
 
     if e % BATCH == 0 and e > 0:
