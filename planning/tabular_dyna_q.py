@@ -44,12 +44,10 @@ for episode in range(EPISODES):
         s1, r, d, _ = env.step(a)
         ep_r += r
         if d == True and r == 0.0: r = -1.0
-        a1 = np.argmax(Q[s1])
-        Q[s,a] += ALPHA*(r + GAMMA*Q[s1,a1] - Q[s,a])
 
         # model update
         if s not in visited_s: visited_s.append(s)
-        if a not in visited_a[s]: visited_a[s].append(a)
+        if a not in visited_a[s]: visited_a[s] = visited_a[s] + [a]
         model["s"][s,a] = s1
         model["r"][s,a] = r
         for i in range(n):
