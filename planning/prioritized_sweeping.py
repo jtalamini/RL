@@ -21,7 +21,7 @@ if P(s,a) is greater than the threshold -> (s,a) is put into the queue with prio
 samples from the model are picked according to the priority
 '''
 P_queue = {}
-THETA = 0.001
+THETA = 0.5
 
 def e_greedy_policy(Q, s):
     if np.random.uniform() < EPSILON:
@@ -82,8 +82,7 @@ for episode in range(EPISODES):
                             prev_s = i
                             prev_a = j
                             prev_r = model["r"][prev_s, prev_a]
-                            amax = np.argmax(Q[sv])
-                            P = np.abs(prev_r + GAMMA * Q[sv, amax] - Q[prev_s, prev_a])
+                            P = np.abs(prev_r + GAMMA * np.max(Q[sv]) - Q[prev_s, prev_a])
                             if P > THETA:
                                 P_queue[(prev_s, prev_a)] = P
 
