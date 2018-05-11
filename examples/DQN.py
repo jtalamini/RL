@@ -16,6 +16,7 @@ SAMPLE = 32
 EPSILON = 1.0
 annealing_steps = 1000000.
 stepDrop = (0.9) / annealing_steps
+tau = 0.001
 TAU = 0.001
 LOAD = False
 
@@ -41,6 +42,9 @@ class Model:
             self.train_step = self.optimizer.minimize(self.loss)
 
 
+model = Model("model")
+target = Model("target")
+
 model_vars = tf.trainable_variables("model")
 target_vars = tf.trainable_variables("target")
 update_target = [target_vars[i].assign(tf.multiply(model_vars[i], TAU) + tf.multiply(target_vars[i], 1. - TAU)) for i in
@@ -63,6 +67,20 @@ def sample_memory(memory, size):
     return s_samp, a_samp, r_samp, d_samp, s1_samp
 
 
+def updateTargetGraph(tfVars, tau):
+    total_vars = len(tfVars)
+    op_holder = []
+    for idx, var in enumerate(tfVars[0:total_vars // 2]):
+        op_holder.append(tfVars[idx + total_vars // 2].assign(
+            (var.value() * tau) + ((1 - tau) * tfVars[idx + total_vars // 2].value())))
+    return op_holder
+
+
+def updateTarget(op_holder, sess):
+    for op in op_holder:
+        sess.run(op)
+
+
 EPISODE = 0
 FRAMES = []
 MEMORY = {"s": [], "a": [], "r": [], "d": [], "s1": []}
@@ -79,9 +97,6 @@ env = gym.make("BreakoutDeterministic-v4")
 s = preprocess(env.reset())
 FRAMES = [s] * SEQ
 
-model = Model("model")
-target = Model("target")
-
 sess = tf.InteractiveSession()
 saver = tf.train.Saver()
 
@@ -91,6 +106,9 @@ if (LOAD == True):
     score_dict = pickle.load(open("score.p", "rb"))
     EPISODE = score_dict["episode"][len(score_dict["episode"]) - 1]
     EPSILON = score_dict["epsilon"][len(score_dict["epsilon"]) - 1]
+
+trainables = tf.trainable_variables()
+targetOps = updateTargetGraph(trainables, tau)
 
 while True:
     STEP += 1
@@ -143,6 +161,7 @@ while True:
                                                   model.a_pl: np.reshape(sample_a, [SAMPLE])})
             # update target model
             sess.run(update_target)
+            # updateTarget(targetOps, sess)
     if d == True:
         EPISODE += 1
         FIRED = False
