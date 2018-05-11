@@ -16,7 +16,6 @@ SAMPLE = 32
 EPSILON = 1.0
 annealing_steps = 1000000.
 stepDrop = (0.9) / annealing_steps
-tau = 0.001
 TAU = 0.001
 LOAD = False
 
@@ -66,21 +65,6 @@ def sample_memory(memory, size):
     s1_samp = np.float32([memory["s1"][i] for i in sublist]) / 255.0
     return s_samp, a_samp, r_samp, d_samp, s1_samp
 
-
-def updateTargetGraph(tfVars, tau):
-    total_vars = len(tfVars)
-    op_holder = []
-    for idx, var in enumerate(tfVars[0:total_vars // 2]):
-        op_holder.append(tfVars[idx + total_vars // 2].assign(
-            (var.value() * tau) + ((1 - tau) * tfVars[idx + total_vars // 2].value())))
-    return op_holder
-
-
-def updateTarget(op_holder, sess):
-    for op in op_holder:
-        sess.run(op)
-
-
 EPISODE = 0
 FRAMES = []
 MEMORY = {"s": [], "a": [], "r": [], "d": [], "s1": []}
@@ -106,9 +90,6 @@ if (LOAD == True):
     score_dict = pickle.load(open("score.p", "rb"))
     EPISODE = score_dict["episode"][len(score_dict["episode"]) - 1]
     EPSILON = score_dict["epsilon"][len(score_dict["epsilon"]) - 1]
-
-trainables = tf.trainable_variables()
-targetOps = updateTargetGraph(trainables, tau)
 
 while True:
     STEP += 1
@@ -161,7 +142,6 @@ while True:
                                                   model.a_pl: np.reshape(sample_a, [SAMPLE])})
             # update target model
             sess.run(update_target)
-            # updateTarget(targetOps, sess)
     if d == True:
         EPISODE += 1
         FIRED = False
