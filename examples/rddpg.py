@@ -167,6 +167,9 @@ sess.run(tf.global_variables_initializer())
 update_target(actor_target, critic_target)
 saver = tf.train.Saver()
 
+if load:
+    saver.restore(sess, "rdpg/rdpg.ckpt")
+
 STEP = 0
 EPISODE = 0
 EP_REW = 0
@@ -272,4 +275,5 @@ while (EPISODE < EPISODES):
             s = env.reset()
         STEP = 0
         if EPISODE % 100 == 0:
+            saver.save(sess, "rdpg/rdpg.ckpt")
             print "model saved"
